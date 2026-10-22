@@ -1,0 +1,42 @@
+{
+  "name": "dweg-landing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Landing-page directions for KOC's Drilling & Workover Engineering Group (DWEG) hub. A consumer of the KOC Design System.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vite --port 4188",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4188",
+    "typecheck": "tsc --noEmit",
+    "test": "playwright test"
+  },
+  "dependencies": {
+    "@base-ui/react": "1.7.0",
+    "@fontsource-variable/inter": "5.3.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "lucide-react": "1.31.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "sonner": "2.0.8",
+    "tailwind-merge": "2.6.1",
+    "tw-animate-css": "1.4.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@playwright/test": "1.62.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.5"
+  }
+}
