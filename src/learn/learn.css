@@ -1,0 +1,146 @@
+/*
+ * The learning page — only what utilities cannot say: the plate's field, the
+ * fade that dissolves the scene into the page, and the callouts the WebGL
+ * scene creates at runtime (F·E·I's, renamed). Colours are KOC tokens only.
+ */
+
+.learn-page {
+  background:
+    radial-gradient(70% 45% at 0% 0%, color-mix(in oklab, var(--primary) 7%, transparent), transparent 70%),
+    var(--background);
+}
+
+/* The plate: the page with a breath of KOC blue where the drawing stands. */
+.learn-plate {
+  background: radial-gradient(80% 75% at 58% 50%, color-mix(in oklab, var(--primary) 9%, transparent) 0%, transparent 72%);
+}
+
+/* The scene dissolves into the page at the plate's edges instead of ending at a box. */
+.learn-canvas {
+  mask-image: radial-gradient(120% 110% at 58% 50%, var(--foreground) 62%, transparent 100%);
+}
+
+/* On wide screens the plate's left edge dissolves into the reading column. */
+@media (min-width: 1024px) {
+  .learn-canvas {
+    mask-image:
+      linear-gradient(to right, transparent 0%, var(--foreground) 30%),
+      radial-gradient(130% 120% at 58% 50%, var(--foreground) 64%, transparent 100%);
+    mask-composite: intersect;
+  }
+}
+
+.learn-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  /* Placed by the render loop every frame; a transition would only lag it. */
+  transition-property: none;
+}
+
+.learn-label-dot {
+  position: absolute;
+  left: -3.5px;
+  top: -3.5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--card);
+  border: 1.25px solid var(--primary);
+}
+
+.learn-label-text {
+  position: absolute;
+  top: -0.7rem;
+  left: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  white-space: nowrap;
+}
+
+.learn-label-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-style: italic;
+  font-size: 0.875rem;
+  line-height: 1.1;
+  color: var(--foreground);
+}
+
+.learn-label-spec {
+  font-size: 0.625rem;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.learn-label-text::before {
+  content: "";
+  position: absolute;
+  top: 0.62rem;
+  left: -40px;
+  width: 34px;
+  height: 0.75px;
+  background: var(--muted-foreground);
+}
+
+.learn-label[data-side="left"] .learn-label-text {
+  left: auto;
+  right: 44px;
+  align-items: flex-end;
+}
+
+.learn-label[data-side="left"] .learn-label-text::before {
+  left: auto;
+  right: -40px;
+}
+
+.learn-label[data-side="below"] .learn-label-text {
+  top: 30px;
+  left: -10px;
+}
+
+.learn-label[data-side="below"] .learn-label-text::before {
+  top: -26px;
+  left: 10px;
+  width: 0.75px;
+  height: 22px;
+}
+
+.learn-label[data-kind="tick"] .learn-label-text {
+  top: -0.4rem;
+  left: 10px;
+}
+
+.learn-label[data-kind="tick"][data-side="left"] .learn-label-text {
+  left: auto;
+  right: 10px;
+}
+
+.learn-label[data-kind="tick"] .learn-label-text::before {
+  display: none;
+}
+
+.learn-label[data-kind="tick"] .learn-label-title {
+  font-family: var(--font-sans, sans-serif);
+  font-style: normal;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.learn-label[data-kind="tick"] .learn-label-dot {
+  left: -2px;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  border: 0;
+  background: var(--muted-foreground);
+}

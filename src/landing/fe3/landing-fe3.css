@@ -1,0 +1,226 @@
+/*
+ * F·E — Wellpath's stage, set in Burgan's fog. Only what utilities cannot
+ * say: the sky behind the well, its dot field and horizon streak, the scrims,
+ * and the labels the WebGL scene creates at runtime. Colours are KOC tokens
+ * only, mixed in linear light exactly as F's diorama derives them
+ * (f2/gl/tokens.ts), so the CSS sky and the shader's sky are one sky.
+ */
+
+.fe3w-stage {
+  /* F light: a pale haze, cool primary from the left, teal-green from the right. */
+  --fe3-haze: color-mix(in srgb-linear, var(--background), var(--muted-foreground) 20%);
+  --fe3-left: color-mix(in srgb-linear, var(--fe3-haze), var(--primary) 20%);
+  --fe3-right: color-mix(in srgb-linear, var(--fe3-haze), color-mix(in srgb-linear, var(--info), var(--success) 55%) 24%);
+  --fe3-zenith: color-mix(in srgb-linear, var(--fe3-haze), var(--muted-foreground) 30%);
+  --fe3-horizon: color-mix(in srgb-linear, var(--background), var(--card) 50%);
+  --fe3-floor: color-mix(in srgb-linear, var(--fe3-haze), var(--muted-foreground) 16%);
+  --fe3-streak: color-mix(in srgb-linear, var(--card), var(--info) 25%);
+  --fe3-dot: color-mix(in oklch, var(--foreground) 11%, transparent);
+  /* Two horizons, as in Burgan's footer: the sky's pale glow band high up,
+     the ground line with its streak lower down on deeper fog. */
+  --fe3-glow-y: 24%;
+  --fe3-horizon-y: 60%;
+
+  background-color: var(--fe3-haze);
+  background-image:
+    linear-gradient(
+      to bottom,
+      transparent 0%,
+      color-mix(in srgb-linear, var(--fe3-horizon) 62%, transparent) var(--fe3-glow-y),
+      transparent calc(var(--fe3-glow-y) + 28%)
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb-linear, var(--fe3-zenith) 55%, transparent) 0%,
+      transparent var(--fe3-glow-y),
+      transparent calc(var(--fe3-glow-y) + 12%),
+      color-mix(in srgb-linear, var(--fe3-floor) 70%, transparent) 100%
+    ),
+    radial-gradient(70% 55% at 0% 0%, color-mix(in oklab, var(--primary) 8%, transparent), transparent 70%),
+    radial-gradient(60% 60% at 100% 35%, color-mix(in oklab, var(--success) 6%, transparent), transparent 70%),
+    linear-gradient(to right, var(--fe3-left), var(--fe3-right));
+}
+
+/* F dark: not E's black — a deep blue-grey fog, lighter than the page. */
+.dark .fe3w-stage {
+  --fe3-haze: color-mix(in srgb-linear, var(--background), var(--muted-foreground) 10%);
+  --fe3-left: color-mix(in srgb-linear, var(--fe3-haze), var(--primary) 10%);
+  --fe3-right: color-mix(in srgb-linear, var(--fe3-haze), color-mix(in srgb-linear, var(--info), var(--success) 50%) 8%);
+  --fe3-zenith: color-mix(in srgb-linear, var(--background), var(--foreground) 1.5%);
+  --fe3-horizon: color-mix(in srgb-linear, var(--background), var(--muted-foreground) 24%);
+  --fe3-floor: var(--background);
+  --fe3-streak: color-mix(in srgb-linear, var(--primary), var(--info) 35%);
+  --fe3-dot: color-mix(in oklch, var(--foreground) 9%, transparent);
+}
+
+/* The dot field: faint, strongest behind the well, gone at the edges. */
+.fe3w-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, var(--fe3-dot) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(ellipse 62% 60% at 66% 48%, var(--foreground) 0%, transparent 100%);
+}
+
+/* Burgan's horizon light-streak, at rest: a hairline, its halo and its glint,
+   added onto the fog as F's overlay pass adds it. */
+.fe3w-streak {
+  top: var(--fe3-horizon-y);
+  height: 1px;
+  mix-blend-mode: plus-lighter;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb-linear, var(--fe3-streak) 55%, transparent) 16%,
+    color-mix(in srgb-linear, var(--fe3-streak) 55%, transparent) 84%,
+    transparent
+  );
+}
+
+.fe3w-streak::before {
+  content: "";
+  position: absolute;
+  inset: -5px 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb-linear, var(--fe3-streak) 16%, transparent) 30%,
+    color-mix(in srgb-linear, var(--fe3-streak) 16%, transparent) 70%,
+    transparent
+  );
+  filter: blur(4px);
+}
+
+.fe3w-streak::after {
+  content: "";
+  position: absolute;
+  left: 64%;
+  top: 50%;
+  width: 11rem;
+  height: 4px;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  filter: blur(2px);
+  background: radial-gradient(closest-side, var(--fe3-streak), transparent);
+}
+
+/* On wide screens the copy sits over the left of the scene; a veil of the
+   fog itself keeps the headline legible over steel without boxing it. */
+.fe3w-sidescrim {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb-linear, var(--fe3-left) 88%, transparent) 0%,
+    color-mix(in srgb-linear, var(--fe3-left) 60%, transparent) 55%,
+    transparent 100%
+  );
+}
+
+/* Readability scrim behind the copy on narrow screens only — on wide ones the
+   well is framed to the right of the copy instead. */
+@media (max-width: 1023.98px) {
+  .fe3w-scrim {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb-linear, var(--fe3-haze) 92%, transparent) 0%,
+      color-mix(in srgb-linear, var(--fe3-haze) 60%, transparent) 60%,
+      transparent 100%
+    );
+  }
+}
+
+.fe3well-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  /* Placed by the render loop every frame; a transition would only lag it
+     (and under reduced motion the global 0.01ms rule would spawn one per frame). */
+  transition-property: none;
+}
+
+.fe3well-label-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--primary) 28%, transparent);
+}
+
+.fe3well-label-text {
+  position: absolute;
+  top: -0.8rem;
+  left: 16px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--foreground);
+  padding: 0.45rem 0.55rem;
+  background: color-mix(in oklch, var(--background) 75%, transparent);
+  border: 1px solid color-mix(in oklch, var(--foreground) 15%, transparent);
+  border-radius: 2px;
+  backdrop-filter: blur(6px);
+}
+
+.fe3well-label-text::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  width: 12px;
+  height: 1px;
+  background: color-mix(in oklch, var(--foreground) 45%, transparent);
+}
+
+.fe3well-label[data-side="left"] .fe3well-label-text {
+  left: auto;
+  right: 16px;
+}
+
+.fe3well-label[data-side="below"] .fe3well-label-text {
+  top: 16px;
+  left: -10px;
+}
+
+.fe3well-label[data-side="below"] .fe3well-label-text::before {
+  top: -12px;
+  left: 10px;
+  width: 1px;
+  height: 12px;
+}
+
+.fe3well-label[data-kind="tick"] .fe3well-label-text {
+  top: -0.55rem;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.625rem;
+  color: var(--muted-foreground);
+  background: none;
+  border: 0;
+  backdrop-filter: none;
+}
+
+.fe3well-label[data-kind="tick"] .fe3well-label-dot {
+  left: -2.5px;
+  top: -2.5px;
+  width: 5px;
+  height: 5px;
+  box-shadow: none;
+  background: var(--muted-foreground);
+}
+
+.fe3well-label[data-side="left"] .fe3well-label-text::before {
+  left: auto;
+  right: -12px;
+}

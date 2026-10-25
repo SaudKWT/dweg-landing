@@ -2,7 +2,7 @@
 
 A hub page for KOC's **Drilling & Workover Engineering Group (DWEG)**. It brings every team's
 engineering dashboards into one page: 8 teams, 28 dashboard links and the group's KPIs. The repo
-holds **nine design directions (A–I), each in two rounds**:
+holds **nine design directions (A–I), each in two rounds, and a third round of three mixes**:
 
 - **v1**, the first round, optimised for first impression. Kept as the backup.
 - **v2**, the daily-use rework:
@@ -11,9 +11,27 @@ holds **nine design directions (A–I), each in two rounds**:
   - pinned and recent dashboards;
   - all links within about one screen;
   - visuals only in empty space and a large footer.
+- **v3**, the mixed round (2026-10-22). Each page takes one direction's page and another's
+  showpiece; the two letters say which. All three follow the v2 daily-use rules.
+  - **F·E** (`fe3`): F v2's card-style top, closed by E's well tour (rig floor to bit),
+    recoloured into F's fog palette.
+  - **F·I** (`fi3`): F v2's card-style top, closed by I's exploded PDC bit plate.
+  - **I·F** (`if3`): I v2's page, with F's four-chapter journey (the first well at Bahra, 1936,
+    to a rig pad today) redrawn as I's clay plates on a turntable instead of F's fog diorama.
+  - **F·E·I** (`fei3`): F v2's figures and directory under I's masthead (KOC logo), closed by E's
+    whole well tour — rig, well plan, casing, build, BHA, bit — drawn in I's clay and blueprint
+    lines, standing in an oil field on a topographic sheet.
+  - **Fly** (`fly3`): F·E·I's title over Datum's endless flight across the oil field; every team
+    and its dashboards nested in a sidebar ported from the design system's `@koc/sidebar`; the
+    figures as Datum's ruled stations underneath. All on one screen.
+  - **Rig** (`rig3`): the same page with F·E·I's rig and well tour as the hero.
+  - Both: the sidebar starts folded, and scrolling past the first screen opens the highlights into
+    detail: the figures in full, then drilling, rate improvement, rig moves, workover and water
+    shut-off charts (hand-drawn SVG on the design system's chart tokens; **every number invented**,
+    contractors lettered).
 
 Hosted at https://dweg-landing.vercel.app. It opens on A v2, and the bar at the bottom left
-switches v1/v2, the direction letter, dark mode and motion.
+switches v1/v2/v3, the direction, dark mode and motion.
 
 > **Every dashboard name, link and figure is a placeholder** (`src/landing/data.ts`). The eight
 > teams and their EN codes are real. Replace the placeholders before showing this to a KOC team.
@@ -44,7 +62,7 @@ KOC_REGISTRY_TOKEN=<token> npx shadcn@latest add @koc/button
 ```bash
 npm ci
 npm run dev        # http://localhost:4188
-npm test           # 234 Playwright checks: axe, keyboard, layout, motion, and the v2 daily-use rules
+npm test           # 334 Playwright checks: axe, keyboard, layout, motion, and the v2 daily-use rules
 npm run build      # → dist/ (static files; serve from any web server)
 ```
 
@@ -66,6 +84,7 @@ web server can host it, IIS included. It needs no server-side code.
 | --- | --- |
 | `src/landing/<a–i>/` | v1 directions |
 | `src/landing/<a2–i2>/` | v2 directions (daily use) |
+| `src/landing/{fe3,fi3,if3,fei3,fly3,rig3}/` | v3 mixes (each a copy of its sources, so v1 and v2 stay untouched) |
 | `src/landing/data.ts` | the shared data every direction renders |
 | `src/landing/shared.tsx` | shared behaviour: links that open in a new tab and say so, pins and recents, search, Ctrl+K |
 | `src/landing/V2-BRIEF.md` | the v2 brief, with Saud's words |

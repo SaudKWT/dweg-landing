@@ -8,12 +8,16 @@
 // First: every later module must see the patched matchMedia.
 import "./landing-motion";
 import "./fonts";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 
 import { LandingViewer } from "./landing/LandingViewer";
 import { LANDING_HASH, directionFromHash } from "./landing/directions";
 import "./index.css";
+
+// The drilling learning page (src/learn): its own route, outside the comparison viewer.
+const LearnPage = lazy(() => import("./learn"));
+const LEARN = /^#\/learn(?:\/([a-z]+))?/;
 
 /** Where the hosted comparison opens when the address names no direction. */
 const HOME = "a2";
@@ -25,13 +29,20 @@ function Root() {
     window.addEventListener("hashchange", onHash);
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
+  const learn = LEARN.exec(hash);
   const id = directionFromHash(hash) ?? HOME;
   // Put the direction in the address so the link is shareable and back/forward work.
   useEffect(() => {
-    if (!directionFromHash(window.location.hash)) {
+    if (!directionFromHash(window.location.hash) && !LEARN.test(window.location.hash)) {
       history.replaceState(null, "", `${LANDING_HASH}${HOME}`);
     }
   }, [hash]);
+  if (learn)
+    return (
+      <Suspense fallback={null}>
+        <LearnPage chapter={learn[1]} />
+      </Suspense>
+    );
   return <LandingViewer id={id} standalone />;
 }
 

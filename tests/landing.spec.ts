@@ -27,7 +27,22 @@ async function openDirection(page: import("@playwright/test").Page, id: string, 
 const IDS_V1 = ["a", "b", "c", "d", "e", "f", "g", "h", "i"] as const;
 /** v2 rounds present in this checkout. Each branch adds its own; the merge unions them. */
 const IDS_V2 = ["a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2", "i2"] as const;
-const IDS = [...IDS_V1, ...IDS_V2] as const;
+/** v3 mixes two directions; every one is a daily-use page, so it clears the v2 rules too. */
+const IDS_V3 = ["fe3", "fi3", "if3", "fei3", "fly3", "rig3"] as const;
+/**
+ * Pages whose showpiece is the hero, by Saud's request (2026-10-25: "an
+ * infinitely scrolling hero … and below the hero the KPI figure cards"), so
+ * they have no large footer. Every other v2 rule still holds for them,
+ * including: no canvas under a link, a figure or the search.
+ */
+const HERO_SHOWPIECE: readonly string[] = ["fly3", "rig3"];
+/**
+ * Pages whose sidebar starts with every team folded (Saud, 2026-10-25: "make
+ * the links in the sidebar compacted by default"). A keyboard user reaches a
+ * dashboard by opening a team first, so the keyboard test opens one.
+ */
+const FOLDED_SIDEBAR: readonly string[] = ["fly3", "rig3"];
+const IDS = [...IDS_V1, ...IDS_V2, ...IDS_V3] as const;
 
 for (const id of IDS) {
   test.describe(`landing ${id}`, () => {
@@ -104,6 +119,10 @@ for (const id of IDS) {
       let found = false;
       for (let i = 0; i < 60 && !found; i++) {
         await page.keyboard.press("Tab");
+        if (FOLDED_SIDEBAR.includes(id)) {
+          const folded = await page.evaluate(() => document.activeElement?.getAttribute("aria-expanded") === "false");
+          if (folded) await page.keyboard.press("Enter");
+        }
         found = await page.evaluate(() => {
           const el = document.activeElement as HTMLAnchorElement | null;
           return !!el && el.tagName === "A" && el.href.includes(".dweg.invalid");
@@ -127,7 +146,7 @@ for (const id of IDS) {
 
 const LINKS = 'a[href*=".dweg.invalid"]';
 
-for (const id of IDS_V2) {
+for (const id of [...IDS_V2, ...IDS_V3]) {
   test.describe(`landing ${id} v2`, () => {
     for (const [w, h] of [
       [1440, 900],
@@ -183,6 +202,8 @@ for (const id of IDS_V2) {
     test("your dashboards: an opened link appears under Recent and a pin survives a reload", async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await openDirection(page, id, 600);
+      // A folded sidebar shows the team, not its links: open Contracts Management first.
+      if (FOLDED_SIDEBAR.includes(id)) await page.getByRole("button", { name: /Contracts Management/, expanded: false }).first().click();
       await page.getByRole("link", { name: /Contract register/ }).first().click();
       await page.getByRole("button", { name: "Pin Tender pipeline", exact: true }).first().click();
       // Prove the pin landed before reloading, so a failure below means persistence, not a lost click.
@@ -239,7 +260,7 @@ for (const id of IDS_V2) {
       expect(overlaps).toEqual([]);
     });
 
-    test("a large footer: at least half a screen tall at 1440×900", async ({ page }) => {
+    if (!HERO_SHOWPIECE.includes(id)) test("a large footer: at least half a screen tall at 1440×900", async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await openDirection(page, id, 600);
       const h = await page.locator("footer").last().evaluate((el) => el.getBoundingClientRect().height);

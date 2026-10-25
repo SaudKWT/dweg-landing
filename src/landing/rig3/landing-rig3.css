@@ -1,0 +1,145 @@
+/*
+ * F·E·I — Wellpath's tour, drawn as Exploded View draws its plate. Only what
+ * utilities cannot say: the page field behind the well, the fade that lets the
+ * scene dissolve under the copy, and the callouts the WebGL scene creates at
+ * runtime. Colours are KOC tokens only.
+ */
+
+/* I's footer field: the page, with a breath of KOC blue where the well stands.
+   The canvas is transparent, so the ground grid runs out into this. */
+.rig3w-stage {
+  background: radial-gradient(110% 90% at 70% 45%, color-mix(in oklab, var(--primary) 10%, var(--background)) 0%, var(--background) 70%);
+}
+
+/* The scene dissolves into the page at its foot, so the figures below sit on
+   the page rather than under a hard edge (Saud, 2026-10-25). */
+.rig3w-canvas,
+.rig3w-labels {
+  mask-image: linear-gradient(to bottom, var(--foreground) 68%, transparent);
+}
+
+/* On wide screens it also runs under the copy and dissolves there, rather
+   than ending at a box edge: both fades, intersected. */
+@media (min-width: 1024px) {
+  .rig3w-canvas {
+    mask-image:
+      linear-gradient(to right, transparent 0%, transparent 18%, var(--foreground) 46%),
+      linear-gradient(to bottom, var(--foreground) 68%, transparent);
+    mask-composite: intersect;
+  }
+}
+
+.rig3well-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  /* Placed by the render loop every frame; a transition would only lag it
+     (and under reduced motion the global 0.01ms rule would spawn one per frame). */
+  transition-property: none;
+}
+
+/* I's anchor: a small card-filled ring in KOC blue. */
+.rig3well-label-dot {
+  position: absolute;
+  left: -3.5px;
+  top: -3.5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--card);
+  border: 1.25px solid var(--primary);
+}
+
+/* I's callout: the part in italic serif, its figure in small caps under it,
+   on a leader line — no box. */
+.rig3well-label-text {
+  position: absolute;
+  top: -0.7rem;
+  left: 44px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  white-space: nowrap;
+}
+
+.rig3well-label-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-style: italic;
+  font-size: 0.875rem;
+  line-height: 1.1;
+  color: var(--foreground);
+}
+
+.rig3well-label-spec {
+  font-size: 0.625rem;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.rig3well-label-text::before {
+  content: "";
+  position: absolute;
+  top: 0.62rem;
+  left: -40px;
+  width: 34px;
+  height: 0.75px;
+  background: var(--muted-foreground);
+}
+
+.rig3well-label[data-side="left"] .rig3well-label-text {
+  left: auto;
+  right: 44px;
+  align-items: flex-end;
+}
+
+.rig3well-label[data-side="left"] .rig3well-label-text::before {
+  left: auto;
+  right: -40px;
+}
+
+.rig3well-label[data-side="below"] .rig3well-label-text {
+  top: 30px;
+  left: -10px;
+}
+
+.rig3well-label[data-side="below"] .rig3well-label-text::before {
+  top: -26px;
+  left: 10px;
+  width: 0.75px;
+  height: 22px;
+}
+
+/* Formation names on the section: a quiet small-caps tick, as on a plate's scale. */
+.rig3well-label[data-kind="tick"] .rig3well-label-text {
+  top: -0.4rem;
+  left: 10px;
+}
+
+.rig3well-label[data-kind="tick"] .rig3well-label-text::before {
+  display: none;
+}
+
+.rig3well-label[data-kind="tick"] .rig3well-label-title {
+  font-family: var(--font-sans, sans-serif);
+  font-style: normal;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+.rig3well-label[data-kind="tick"] .rig3well-label-dot {
+  left: -2px;
+  top: -2px;
+  width: 4px;
+  height: 4px;
+  border: 0;
+  background: var(--muted-foreground);
+}

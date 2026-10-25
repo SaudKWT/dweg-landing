@@ -12,7 +12,9 @@ import { ArrowLeft, Moon, Sun, Turtle } from "lucide-react";
 
 import { Toaster, cn } from "@/koc";
 
-import { DIRECTIONS, LANDING_HASH, letterOf, versionOf, type Direction } from "./directions";
+import { DIRECTIONS, LANDING_HASH, ROUNDS, badgeOf, letterOf, versionOf, type Direction } from "./directions";
+
+const ROUND_NAME = { 1: "first round", 2: "daily-use round", 3: "mixed round" } as const;
 
 export function LandingViewer({
   id,
@@ -36,7 +38,7 @@ export function LandingViewer({
     else delete document.documentElement.dataset.forceReducedMotion;
   }, [reduce]);
   useEffect(() => {
-    document.title = `${direction.name} ${versionOf(direction.id) === 2 ? "v2" : "v1"} — D&W landing direction`;
+    document.title = `${direction.name} v${versionOf(direction.id)} — D&W landing direction`;
     window.scrollTo(0, 0);
   }, [direction.name]);
 
@@ -70,10 +72,12 @@ export function LandingViewer({
           </a>
         )}
         {/* Round switch: jumps to the same letter in the other round when it
-            exists, so comparing a direction's v1 and v2 is one click. */}
-        {([1, 2] as const).map((v) => {
+            exists, so comparing a direction's v1 and v2 is one click. v3 ids
+            are two letters ("fe"); the first is the page they start from. */}
+        {ROUNDS.map((v) => {
           const target =
             DIRECTIONS.find((d) => versionOf(d.id) === v && letterOf(d.id) === letterOf(id)) ??
+            DIRECTIONS.find((d) => versionOf(d.id) === v && letterOf(d.id)[0] === letterOf(id)[0]) ??
             DIRECTIONS.find((d) => versionOf(d.id) === v);
           if (!target) return null;
           const current = versionOf(id) === v;
@@ -88,7 +92,7 @@ export function LandingViewer({
               )}
             >
               v{v}
-              <span className="sr-only">{v === 1 ? " — first round" : " — daily-use round"}</span>
+              <span className="sr-only">{` — ${ROUND_NAME[v]}`}</span>
             </a>
           );
         })}
@@ -104,8 +108,8 @@ export function LandingViewer({
               d.id === id ? "bg-primary text-primary-foreground" : "hover:bg-accent",
             )}
           >
-            {letterOf(d.id)}
-            <span className="sr-only">{` — ${d.name}, ${versionOf(d.id) === 2 ? "v2" : "v1"}`}</span>
+            {badgeOf(d.id)}
+            <span className="sr-only">{` — ${d.name}, v${versionOf(d.id)}`}</span>
           </a>
         ))}
         <button
