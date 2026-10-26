@@ -42,6 +42,13 @@ const HERO_SHOWPIECE: readonly string[] = ["fly3", "rig3"];
  * dashboard by opening a team first, so the keyboard test opens one.
  */
 const FOLDED_SIDEBAR: readonly string[] = ["fly3", "rig3"];
+/**
+ * Pages whose Find rests as a quiet button and becomes the search field when
+ * clicked or on Ctrl+K — the design system's app shell (Saud, 2026-10-25:
+ * "mute it"; brought to rig3 2026-10-26). The visible-search rule holds for the
+ * button; Ctrl+K must still land the cursor in the field.
+ */
+const QUIET_FIND: readonly string[] = ["rig3"];
 const IDS = [...IDS_V1, ...IDS_V2, ...IDS_V3] as const;
 
 for (const id of IDS) {
@@ -171,8 +178,9 @@ for (const id of [...IDS_V2, ...IDS_V3]) {
       await page.setViewportSize({ width: 1440, height: 900 });
       await openDirection(page, id, 600);
       const field = page.getByRole("searchbox").or(page.getByRole("combobox")).first();
-      await expect(field).toBeVisible();
-      const box = await field.boundingBox();
+      const visible = QUIET_FIND.includes(id) ? page.getByRole("button", { name: /find a dashboard/i }).first() : field;
+      await expect(visible).toBeVisible();
+      const box = await visible.boundingBox();
       expect(box && box.y + box.height <= 900, "search field must be in the first viewport").toBe(true);
       await page.locator("body").click({ position: { x: 5, y: 5 } });
       await page.keyboard.press("Control+k");
@@ -233,7 +241,7 @@ for (const id of [...IDS_V2, ...IDS_V3]) {
         };
         const isViewer = (el: Element) => !!el.closest("[aria-label='Direction viewer'],[data-sonner-toaster]");
         const functional = [
-          ...document.querySelectorAll(`${linkSel}, [data-kpi], input[type='search'], [role='searchbox'], [role='combobox']`),
+          ...document.querySelectorAll(`${linkSel}, [data-kpi], [data-find], input[type='search'], [role='searchbox'], [role='combobox']`),
         ].filter((el) => !isViewer(el));
         const moving = new Set<Element>();
         document.querySelectorAll("canvas").forEach((c) => moving.add(c));

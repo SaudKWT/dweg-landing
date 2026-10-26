@@ -12,9 +12,13 @@
  * Every team starts folded (Saud, 2026-10-25: "make the links in the sidebar
  * compacted by default"), so the eight teams fit without scrolling; a search
  * unfolds every team that matches, and pinned and recent stay one click away.
+ *
+ * Find follows the design system's app shell (2026-10-26): a quiet row with a
+ * card's hairline at rest, the bordered input only while it is being typed in.
+ * Recent stays — the landing page is the one place it belongs (Saud, 2026-10-25).
  */
 
-import { useRef, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { BookOpen, ChevronRight, Search, X } from "lucide-react";
 
 import { cn } from "@/koc";
@@ -27,7 +31,6 @@ import {
   PLATFORM_ICON,
   PinToggle,
   useDashboardMemory,
-  useFindShortcut,
   type RememberedLink,
   type TeamMatch,
 } from "../shared";
@@ -61,14 +64,41 @@ export function Sidebar({
   memory: Memory;
 }) {
   const field = useRef<HTMLInputElement>(null);
-  useFindShortcut(field);
+  const rest = useRef<HTMLButtonElement>(null);
+  // Whether Find is open as an input. A query keeps it open, so a search in
+  // progress never collapses back into the quiet row.
+  const [finding, setFinding] = useState(false);
+  const open = finding || !!query;
   const [opened, setOpened] = useState<Set<string>>(() => new Set());
   const found = matches.reduce((n, m) => n + m.links.length, 0);
 
-  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Escape" && query) {
+  // Ctrl K / Cmd K opens Find from anywhere. `code` first, so it works on an
+  // Arabic layout, where the K key does not type "k"; the input focuses itself
+  // on mount, and is selected when it was already open.
+  useEffect(() => {
+    const onShortcut = (e: globalThis.KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+      if (e.code !== "KeyK" && e.key.toLowerCase() !== "k") return;
       e.preventDefault();
-      setQuery("");
+      setFinding(true);
+      field.current?.focus();
+      field.current?.select();
+    };
+    window.addEventListener("keydown", onShortcut);
+    return () => window.removeEventListener("keydown", onShortcut);
+  }, []);
+
+  const toRest = () => {
+    setFinding(false);
+    requestAnimationFrame(() => rest.current?.focus());
+  };
+
+  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      // First Esc clears; the second puts Find back to rest.
+      if (query) setQuery("");
+      else toRest();
     } else if (e.key === "Enter" || e.key === "ArrowDown") {
       const first = document.querySelector<HTMLAnchorElement>(`#${prefix}-teams a[href]`);
       if (first) {
@@ -99,42 +129,66 @@ export function Sidebar({
             <span className="block truncate text-xs text-sidebar-foreground/70">{GROUP.company}</span>
           </span>
         </div>
-        {/* SidebarInput, with the find behaviour every v2 page shares. */}
+        {/*
+         * Find, as the app shell has it. At rest a quiet row with a card's
+         * hairline; the moment it is clicked or Ctrl K is pressed, the input.
+         * An INPUT's boundary must clear 3:1 (WCAG 1.4.11, `border-input`), and
+         * that is what read as "highlighted"; a BUTTON that opens the input has
+         * no such boundary to keep, so the field keeps its tested border only
+         * while it is being typed into.
+         */}
         <div role="search" className="relative">
-          <label htmlFor={`${prefix}-find`} className="sr-only">
-            Find a dashboard
-          </label>
-          <Search aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            ref={field}
-            id={`${prefix}-find`}
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={onKey}
-            autoComplete="off"
-            spellCheck={false}
-            aria-describedby={`${prefix}-find-hint`}
-            aria-controls={`${prefix}-teams`}
-            placeholder="Find a dashboard"
-            className="h-8 w-full rounded-md border border-input bg-background pl-8 pr-14 text-sm shadow-none outline-hidden placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring [&::-webkit-search-cancel-button]:hidden"
-          />
-          {query ? (
-            <button
-              type="button"
-              onClick={() => {
-                setQuery("");
-                field.current?.focus();
-              }}
-              className="absolute right-1 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring outline-hidden"
-            >
-              <X className="size-3.5" aria-hidden="true" />
-              <span className="sr-only">Clear the search</span>
-            </button>
+          {open ? (
+            <>
+              <label htmlFor={`${prefix}-find`} className="sr-only">
+                Find a dashboard
+              </label>
+              <Search aria-hidden="true" className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                ref={field}
+                id={`${prefix}-find`}
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={onKey}
+                onBlur={() => !query && setFinding(false)}
+                autoFocus
+                autoComplete="off"
+                spellCheck={false}
+                aria-describedby={`${prefix}-find-hint`}
+                aria-controls={`${prefix}-teams`}
+                placeholder="Find a dashboard"
+                className="h-8 w-full rounded-lg border border-input bg-background pl-8 pr-8 text-sm shadow-none outline-hidden placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring [&::-webkit-search-cancel-button]:hidden"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuery("");
+                    field.current?.focus();
+                  }}
+                  className="absolute right-1 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring outline-hidden"
+                >
+                  <X className="size-3.5" aria-hidden="true" />
+                  <span className="sr-only">Clear the search</span>
+                </button>
+              )}
+            </>
           ) : (
-            <kbd aria-hidden="true" className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 rounded border bg-sidebar px-1 font-mono text-2xs text-muted-foreground">
-              Ctrl K
-            </kbd>
+            <button
+              ref={rest}
+              type="button"
+              data-find
+              onClick={() => setFinding(true)}
+              aria-describedby={`${prefix}-find-hint`}
+              className="flex h-8 w-full items-center gap-2 rounded-lg border border-sidebar-border bg-card/70 px-2 text-sm text-sidebar-foreground/60 outline-hidden transition-colors duration-fast ease-out hover:bg-sidebar-accent/60 hover:text-sidebar-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            >
+              <Search aria-hidden="true" className="size-4 shrink-0" />
+              <span className="flex-1 text-left">Find a dashboard</span>
+              <kbd aria-hidden="true" className="font-mono text-2xs text-sidebar-foreground/50">
+                Ctrl K
+              </kbd>
+            </button>
           )}
           <p id={`${prefix}-find-hint`} className="sr-only">
             Shortcut: Control K. Filters the teams below as you type; Enter moves to the first result.

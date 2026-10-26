@@ -15,7 +15,7 @@ import { cn } from "@/koc";
 
 import { COMPANY_KPIS, DATA_AS_OF, GROUP, KPIS, formatKpi, type Kpi } from "../data";
 import { SENTIMENT_TEXT, Sparkline, deltaSpeech, formatDelta, kpiSentiment } from "../shared";
-import { C1, C2, C3, ChartFrame, Columns, DivergingColumns, HBars, Lines, NEUTRAL, StackedColumns, ramp, type Segment } from "./charts";
+import { C1, C2, C4, ChartFrame, Columns, DivergingColumns, HBars, Lines, NEUTRAL, StackedColumns, ramp, type Segment } from "./charts";
 import {
   ASSETS,
   ASSET_NAME,
@@ -191,7 +191,7 @@ function Drilling({ prefix }: { prefix: string }) {
             legend={[
               { label: "NK", color: C1 },
               { label: "SEK", color: C2 },
-              { label: "WK", color: C3 },
+              { label: "WK", color: C4 },
             ]}
             height={170}
             table={{ columns: ["Year", "NK", "SEK", "WK"], rows: LEARNING.years.map((y, i) => [y, LEARNING.NK[i], LEARNING.SEK[i], LEARNING.WK[i]]) }}
@@ -204,7 +204,7 @@ function Drilling({ prefix }: { prefix: string }) {
                 series={[
                   { name: "NK", color: C1, values: LEARNING.NK, labels: [] },
                   { name: "SEK", color: C2, values: LEARNING.SEK, labels: [] },
-                  { name: "WK", color: C3, values: LEARNING.WK, labels: [4] },
+                  { name: "WK", color: C4, values: LEARNING.WK, labels: [4] },
                 ]}
                 domain={[1.5, 5]}
                 ticks={[2, 3, 4, 5]}
@@ -510,7 +510,7 @@ function WaterShutOff({ prefix }: { prefix: string }) {
             subtitle={`${a.jobs.reduce((s, v) => s + v, 0)} jobs`}
             summary={`${a.area}: ${a.first[5]}% succeeded first time and ${a.second[5]}% within two attempts in Q2 2026–27.`}
             legend={[
-              { label: "Within two attempts", color: C3 },
+              { label: "Within two attempts", color: C2 },
               { label: "First attempt", color: C1 },
             ]}
             height={190}
@@ -522,7 +522,7 @@ function WaterShutOff({ prefix }: { prefix: string }) {
                 h={190}
                 categories={QUARTERS.map((q) => q.replace(" ", " "))}
                 series={[
-                  { name: "Two", color: C3, values: [...a.second], labels: [0, 5] },
+                  { name: "Two", color: C2, values: [...a.second], labels: [0, 5] },
                   { name: "First", color: C1, values: [...a.first], labels: [0, 5] },
                 ]}
                 domain={[40, 100]}
