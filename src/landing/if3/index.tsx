@@ -17,8 +17,8 @@
  *   footer     Plates I–IV, lazy-mounted, never behind anything you click
  */
 
-import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode, type RefObject } from "react";
-import { ArrowDownRight, ArrowUp, ArrowUpRight, ExternalLink, Minus, Pause, Play, Plus, Search, X } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import { ArrowDownRight, ArrowUp, ArrowUpRight, ExternalLink, Minus, Pause, Play, Plus } from "lucide-react";
 
 import { cn } from "@/koc";
 
@@ -44,7 +44,7 @@ import {
   kpiSentiment,
   matchDashboards,
   useDashboardMemory,
-  useFindShortcut,
+  QuietFind,
   useInView,
   useReducedMotion,
   type RememberedLink,
@@ -69,8 +69,6 @@ export default function DirectionIF3() {
   const memory = useDashboardMemory();
   const [query, setQuery] = useState("");
   const matches = useMemo(() => matchDashboards(query), [query]);
-  const findRef = useRef<HTMLInputElement>(null);
-  useFindShortcut(findRef);
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -87,11 +85,11 @@ export default function DirectionIF3() {
         {/* The plate's pale field, carried over from v1 — now a band, not a screen. */}
         <div
           className={cn(
-            "rounded-2xl border",
+            "rounded-xl border",
             "bg-[radial-gradient(90%_140%_at_70%_0%,color-mix(in_oklab,var(--primary)_9%,var(--background))_0%,var(--background)_70%)]",
           )}
         >
-          <Masthead findRef={findRef} query={query} setQuery={setQuery} matches={matches} />
+          <Masthead query={query} setQuery={setQuery} matches={matches} />
           <Figures />
         </div>
         <YourDashboards memory={memory} />
@@ -106,32 +104,15 @@ export default function DirectionIF3() {
 // ── Masthead ────────────────────────────────────────────────────────────────
 
 function Masthead({
-  findRef,
   query,
   setQuery,
   matches,
 }: {
-  findRef: RefObject<HTMLInputElement | null>;
   query: string;
   setQuery: (q: string) => void;
   matches: TeamMatch[];
 }) {
-  const isMac = typeof navigator !== "undefined" && /mac/i.test(navigator.platform);
   const found = matches.reduce((n, m) => n + m.links.length, 0);
-
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Escape" && query) {
-      e.preventDefault();
-      setQuery("");
-    } else if (e.key === "ArrowDown" || (e.key === "Enter" && query)) {
-      // Straight to the first result: Enter again opens it.
-      const first = document.querySelector<HTMLAnchorElement>("#if3-teams a[href]");
-      if (first) {
-        e.preventDefault();
-        first.focus();
-      }
-    }
-  };
 
   return (
     <header className="flex flex-col gap-4 px-4 pt-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:px-6 lg:pt-5">
@@ -151,47 +132,16 @@ function Masthead({
         </div>
       </div>
 
-      <div role="search" className="relative w-full lg:max-w-xl">
-        <label htmlFor="if3-find" className="sr-only">
-          Find a dashboard
-        </label>
-        <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <input
+      <div className="w-full lg:max-w-xl">
+        <QuietFind
           id="if3-find"
-          ref={findRef}
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={onKeyDown}
+          query={query}
+          setQuery={setQuery}
           placeholder="Find a dashboard, team or EN code"
-          autoComplete="off"
-          spellCheck={false}
-          aria-describedby="if3-find-hint"
-          className="h-12 w-full rounded-full border border-input bg-card pl-11 pr-24 text-md shadow-xs transition-colors duration-fast ease-out placeholder:text-muted-foreground hover:border-primary/60 [&::-webkit-search-cancel-button]:hidden"
+          controls="if3-teams"
+          firstResult="#if3-teams a[href]"
+          tall
         />
-        <span className="pointer-events-none absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-1">
-          {query ? null : (
-            <kbd aria-hidden="true" className="hidden rounded border bg-background px-1.5 py-0.5 font-mono text-2xs text-muted-foreground sm:inline">
-              {isMac ? "⌘ K" : "Ctrl K"}
-            </kbd>
-          )}
-        </span>
-        {query && (
-          <button
-            type="button"
-            onClick={() => {
-              setQuery("");
-              findRef.current?.focus();
-            }}
-            className="absolute right-2 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors duration-fast ease-out hover:bg-accent hover:text-foreground"
-            aria-label="Clear the search"
-          >
-            <X className="size-4" aria-hidden="true" />
-          </button>
-        )}
-        <p id="if3-find-hint" className="sr-only">
-          {`Shortcut: ${isMac ? "Command" : "Control"} K. Filters the teams below as you type; Down arrow moves to the first result.`}
-        </p>
         <p className="sr-only" aria-live="polite">
           {query ? `${found} ${found === 1 ? "dashboard matches" : "dashboards match"}` : ""}
         </p>
@@ -206,7 +156,7 @@ function Figures() {
   return (
     <section aria-labelledby="if3-figures-h" className="px-4 pb-4 pt-4 lg:px-6 lg:pb-5">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 id="if3-figures-h" className="font-mono text-2xs uppercase tracking-wider text-muted-foreground">
+        <h2 id="if3-figures-h" className="text-2xs font-medium uppercase tracking-caps text-muted-foreground">
           Key figures
         </h2>
         <p className="text-2xs text-muted-foreground">
@@ -278,7 +228,7 @@ function YourDashboards({ memory }: { memory: Memory }) {
   const { pinned, recent, isPinned, togglePin, clearRecent } = memory;
   return (
     <div className="grid gap-3 lg:grid-cols-2">
-      <section aria-label="Pinned dashboards" className="rounded-xl border bg-card px-4 py-2.5">
+      <section aria-label="Pinned dashboards" className="rounded-xl border bg-card/70 px-4 py-2.5">
         <SlotHeading>Pinned</SlotHeading>
         {pinned.length ? (
           <ChipList items={pinned} isPinned={isPinned} togglePin={togglePin} />
@@ -288,7 +238,7 @@ function YourDashboards({ memory }: { memory: Memory }) {
           </p>
         )}
       </section>
-      <section aria-label="Recent dashboards" className="rounded-xl border bg-card px-4 py-2.5">
+      <section aria-label="Recent dashboards" className="rounded-xl border bg-card/70 px-4 py-2.5">
         <div className="flex items-baseline justify-between gap-2">
           <SlotHeading>Recent</SlotHeading>
           {recent.length > 0 && (
@@ -312,7 +262,7 @@ function YourDashboards({ memory }: { memory: Memory }) {
 }
 
 function SlotHeading({ children }: { children: ReactNode }) {
-  return <h2 className="mb-1.5 font-mono text-2xs uppercase tracking-wider text-muted-foreground">{children}</h2>;
+  return <h2 className="mb-1.5 text-2xs font-medium uppercase tracking-caps text-muted-foreground">{children}</h2>;
 }
 
 function ChipList({
@@ -370,7 +320,7 @@ function PartsList({
 }) {
   const found = matches.reduce((n, m) => n + m.links.length, 0);
   return (
-    <section id="if3-teams" aria-labelledby="if3-teams-h" className="scroll-mt-3 rounded-2xl border bg-card px-4 py-4 lg:px-6">
+    <section id="if3-teams" aria-labelledby="if3-teams-h" className="scroll-mt-3 rounded-xl border bg-card/70 px-4 py-4 lg:px-6">
       <div className="flex flex-col gap-2 border-b pb-3 md:flex-row md:items-baseline md:justify-between">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
           <p className="font-mono text-xs text-muted-foreground">

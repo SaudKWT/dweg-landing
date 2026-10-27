@@ -48,7 +48,7 @@ const FOLDED_SIDEBAR: readonly string[] = ["fly3", "rig3"];
  * "mute it"; brought to rig3 2026-10-26). The visible-search rule holds for the
  * button; Ctrl+K must still land the cursor in the field.
  */
-const QUIET_FIND: readonly string[] = ["rig3"];
+const QUIET_FIND: readonly string[] = ["fe3", "fi3", "fei3", "if3", "fly3", "rig3"];
 const IDS = [...IDS_V1, ...IDS_V2, ...IDS_V3] as const;
 
 for (const id of IDS) {

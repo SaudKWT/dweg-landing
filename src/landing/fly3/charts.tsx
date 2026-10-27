@@ -4,10 +4,13 @@
  * dependencies beyond what its components need.
  *
  * Rules these follow (the dataviz method):
- *   - colour comes from tokens only: --chart-1..3 for identity (validated as a
- *     set; chart-4 and chart-5 fail colour-blind separation against their
- *     neighbours, so they are not used), --chart-1 as the one sequential hue,
- *     --chart-2 as the warm pole where a scale has a "behind" end;
+ *   - colour comes from tokens only: --chart-1..3 for identity — KOC blue,
+ *     coral, magenta, the design system's jewel tones in their 2026-10-27
+ *     order, which its tests hold apart as a SET (every pair, both themes), so
+ *     three crossing lines stay distinct for colour-blind readers too. Not
+ *     --chart-5 (indigo) beside --chart-1: one colour to a colour-blind reader.
+ *     --chart-1 is the one sequential hue, --chart-2 the warm pole where a
+ *     scale has a "behind" end;
  *   - thin marks, a 2px surface gap between fills, hairline grid, one y-axis;
  *   - a legend for two or more series, plus direct labels on the few points
  *     that matter — never a number on every point;

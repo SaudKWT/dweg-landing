@@ -11,8 +11,8 @@
  * Evaluation-only, like everything in bakeoff/landing.
  */
 
-import { useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
-import { ArrowUpRight, Minus, Search, TrendingDown, TrendingUp, X } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import { ArrowUpRight, Minus, TrendingDown, TrendingUp } from "lucide-react";
 
 import { cn } from "@/koc";
 
@@ -40,7 +40,7 @@ import {
   kpiSentiment,
   matchDashboards,
   useDashboardMemory,
-  useFindShortcut,
+  QuietFind,
   type RememberedLink,
   type TeamMatch,
 } from "../shared";
@@ -86,18 +86,6 @@ export default function DirectionFE3() {
 // ── Header: identity and the find field ────────────────────────────────────
 
 function Header({ query, setQuery }: { query: string; setQuery: (q: string) => void }) {
-  const field = useRef<HTMLInputElement>(null);
-  useFindShortcut(field);
-  const onKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Escape" && query) {
-      e.preventDefault();
-      setQuery("");
-    } else if (e.key === "Enter") {
-      // Enter goes to the first result, so Enter again opens it.
-      e.preventDefault();
-      document.querySelector<HTMLAnchorElement>("#fe3-directory a[href]")?.focus();
-    }
-  };
   return (
     <header className="relative mx-auto max-w-[90rem] px-4 pt-4 sm:px-8 sm:pt-5">
       <button
@@ -112,56 +100,21 @@ function Header({ query, setQuery }: { query: string; setQuery: (q: string) => v
       </button>
       <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
         <div className="mr-auto min-w-0">
-          <p className="text-2xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-2xs font-medium uppercase tracking-caps text-muted-foreground">
             {GROUP.company}
             <span className="hidden md:inline"> · {GROUP.directorate}</span>
           </p>
           <h1 className="mt-0.5 text-base font-medium tracking-tight sm:text-lg">{GROUP.name}</h1>
         </div>
-        <div role="search" className="relative w-full sm:w-[28rem]">
-          <label htmlFor="fe3-find" className="sr-only">
-            Find a dashboard
-          </label>
-          <Search className="pointer-events-none absolute left-3.5 z-10 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-          <input
-            ref={field}
-            id="fe3-find"
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={onKey}
-            autoComplete="off"
-            spellCheck={false}
-            aria-describedby="fe3-find-hint"
-            aria-controls="fe3-directory"
-            placeholder="Find a dashboard or team"
-            className={cn(
-              "h-10 w-full rounded-full border border-input bg-background/85 pl-10 pr-20 text-sm backdrop-blur placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden",
-              FOCUS_RING,
-            )}
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => {
-                setQuery("");
-                field.current?.focus();
-              }}
-              className={cn("absolute right-2 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-foreground", FOCUS_RING)}
-            >
-              <X className="size-4" aria-hidden="true" />
-              <span className="sr-only">Clear the search</span>
-            </button>
-          )}
-          {/* Kept in the DOM while typing: the field's aria-describedby points at it. */}
-          <kbd
-            id="fe3-find-hint"
-            hidden={!!query}
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 rounded border px-1.5 py-0.5 font-sans text-2xs text-muted-foreground"
-          >
-            <span className="sr-only">Shortcut: </span>Ctrl K
-          </kbd>
-        </div>
+        <QuietFind
+          id="fe3-find"
+          query={query}
+          setQuery={setQuery}
+          placeholder="Find a dashboard or team"
+          controls="fe3-directory"
+          firstResult="#fe3-directory a[href]"
+          className="w-full sm:w-[28rem]"
+        />
       </div>
       <Horizon />
     </header>
@@ -227,7 +180,7 @@ function Figures() {
   return (
     <section aria-labelledby="fe3-figures-h" className="mt-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-        <h2 id="fe3-figures-h" className="text-2xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <h2 id="fe3-figures-h" className="text-2xs font-medium uppercase tracking-caps text-muted-foreground">
           Figures
         </h2>
         <p className="text-2xs text-muted-foreground">
@@ -295,8 +248,8 @@ function MemoryRegion({
   action?: ReactNode;
 }) {
   return (
-    <section aria-label={name} className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-lg border border-foreground/10 bg-background/40 px-3 py-1.5">
-      <h2 className="w-full shrink-0 text-2xs sm:w-14 font-medium uppercase tracking-[0.2em] text-muted-foreground">{title}</h2>
+    <section aria-label={name} className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border bg-card/70 backdrop-blur px-3 py-1.5">
+      <h2 className="w-full shrink-0 text-2xs sm:w-14 font-medium uppercase tracking-caps text-muted-foreground">{title}</h2>
       {items.length ? (
         <ul className="flex min-w-0 flex-1 flex-wrap gap-1.5">
           {items.map((it) => (
@@ -385,7 +338,7 @@ function Directory({
   return (
     <section id="fe3-directory" tabIndex={-1} aria-labelledby="fe3-dir-h" className="mt-5 scroll-mt-4 pb-4 outline-none">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-foreground/15 pb-2">
-        <h2 id="fe3-dir-h" className="text-2xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <h2 id="fe3-dir-h" className="text-2xs font-medium uppercase tracking-caps text-muted-foreground">
           Dashboards <span className="normal-case tracking-normal">· {TEAMS.length} teams · {DASHBOARD_COUNT}</span>
         </h2>
         {!query && (
@@ -442,7 +395,7 @@ function Directory({
                     {t.index}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-2xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{t.code}</p>
+                    <p className="text-2xs font-semibold uppercase tracking-caps text-muted-foreground">{t.code}</p>
                     <h3 id={`fe3-team-${t.code.toLowerCase()}-h`} title={t.name} className="truncate text-sm font-medium leading-snug">
                       <span className="sr-only">{t.code} — </span>
                       {t.shortName}
@@ -450,7 +403,7 @@ function Directory({
                     </h3>
                   </div>
                 </div>
-                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border bg-card/75 backdrop-blur">
+                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-xl border bg-card/70 backdrop-blur">
                   {links.map((l) => (
                     <LinkRow key={l.id} link={l} memory={memory} />
                   ))}

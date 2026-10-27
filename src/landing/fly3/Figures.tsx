@@ -19,7 +19,7 @@ export function Figures({ prefix }: { prefix: string }) {
   return (
     <section aria-labelledby={`${prefix}-figures-h`} className="flex min-h-0 shrink-0 flex-col gap-2 px-4 pb-4 pt-3 sm:px-8 lg:min-h-[18.5rem] lg:flex-[2]">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4">
-        <h2 id={`${prefix}-figures-h`} className="text-2xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+        <h2 id={`${prefix}-figures-h`} className="text-2xs font-medium uppercase tracking-caps text-muted-foreground">
           Figures
         </h2>
         <p className="text-2xs text-muted-foreground">

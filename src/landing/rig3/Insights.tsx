@@ -68,7 +68,7 @@ function Section({ prefix, n, eyebrow, title, aside, children }: { prefix: strin
     <section aria-labelledby={id} className="flex flex-col gap-5">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
         <div>
-          <p className="text-2xs font-medium uppercase tracking-[0.2em] text-muted-foreground">
+          <p className="text-2xs font-medium uppercase tracking-caps text-muted-foreground">
             <span className="font-mono text-primary">{n}</span> — {eyebrow}
           </p>
           <h2 id={id} className="mt-2 text-3xl font-light tracking-tight sm:text-4xl">
@@ -110,7 +110,7 @@ function FiguresInDetail({ prefix }: { prefix: string }) {
       <ul className="grid gap-x-8 gap-y-8 sm:grid-cols-2 xl:grid-cols-4">
         {COMPANY_KPIS.map((k) => (
           <li key={k.id} className="flex flex-col gap-1 border-t pt-4">
-            <p className="text-2xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{k.tag}</p>
+            <p className="text-2xs font-medium uppercase tracking-caps text-muted-foreground">{k.tag}</p>
             <h3 className="text-sm">{k.label}</h3>
             <p className="mt-1 flex items-baseline gap-2 whitespace-nowrap">
               <span className="text-5xl font-light tabular-nums tracking-tight">{formatKpi(k, k.value)}</span>
@@ -130,7 +130,7 @@ function FiguresInDetail({ prefix }: { prefix: string }) {
           <li key={k.id} className="flex flex-col gap-1 rounded-xl border bg-card/70 p-4">
             <div className="flex items-baseline justify-between gap-3">
               <h4 className="text-sm">{k.label}</h4>
-              <span className="text-2xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{k.tag}</span>
+              <span className="text-2xs font-medium uppercase tracking-caps text-muted-foreground">{k.tag}</span>
             </div>
             <p className="mt-1 flex items-baseline gap-1.5 whitespace-nowrap">
               <span className="text-3xl font-light tabular-nums tracking-tight">{formatKpi(k, k.value)}</span>

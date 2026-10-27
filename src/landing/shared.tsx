@@ -15,10 +15,11 @@ import {
   useState,
   type AnchorHTMLAttributes,
   type ButtonHTMLAttributes,
+  type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   type RefObject,
 } from "react";
-import { AppWindow, ChartColumnBig, FileStack, Pin, type LucideIcon } from "lucide-react";
+import { AppWindow, ChartColumnBig, FileStack, Pin, Search, X, type LucideIcon } from "lucide-react";
 
 import { toast, cn, type StatIntent } from "@/koc";
 
@@ -369,6 +370,150 @@ export function PinToggle({ link, pinned, onTogglePin, className, ...props }: Pi
           "not pinned" at a glance, the opposite of the state it marked. */}
       <Pin className="size-3.5" fill={pinned ? "currentColor" : "none"} aria-hidden="true" />
     </button>
+  );
+}
+
+/**
+ * Find, as the design system's app shell has it (2026-10-25: "mute it", then
+ * "a thin border … similar to our card style"), for the v3 pages' mastheads.
+ *
+ * At rest it is a quiet button with a card's hairline; clicked or on Ctrl K it
+ * becomes the field, and it goes back to rest when it loses focus empty or on a
+ * second Escape. An INPUT's boundary must clear 3:1 (WCAG 1.4.11 —
+ * `border-input`), and that is what read as "highlighted"; a BUTTON that opens
+ * the input has no such boundary to keep, so the field keeps its tested border
+ * only while it is being typed into. A query keeps it open.
+ *
+ * Enter or Down moves to `firstResult`, so Enter again opens it.
+ */
+export function QuietFind({
+  id,
+  query,
+  setQuery,
+  placeholder,
+  controls,
+  firstResult,
+  tall,
+  className,
+}: {
+  /** The input's id; the hint is `${id}-hint`. */
+  id: string;
+  query: string;
+  setQuery: (q: string) => void;
+  placeholder: string;
+  /** The id of the list the field filters. */
+  controls: string;
+  /** Selector for the first result, focused on Enter or Down. */
+  firstResult: string;
+  /** 48px rather than 40px, for a page whose search sits in a hero row. */
+  tall?: boolean;
+  className?: string;
+}) {
+  const field = useRef<HTMLInputElement>(null);
+  const rest = useRef<HTMLButtonElement>(null);
+  const [finding, setFinding] = useState(false);
+  const open = finding || !!query;
+  const mac = typeof navigator !== "undefined" && /mac/i.test(navigator.platform);
+
+  // Ctrl K / ⌘K opens it from anywhere. `code` too: on an Arabic layout the K
+  // key does not type "k" (see useFindShortcut). The field focuses itself on
+  // mount, and is selected when it was already open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
+      if (e.code !== "KeyK" && e.key.toLowerCase() !== "k") return;
+      e.preventDefault();
+      setFinding(true);
+      field.current?.focus();
+      field.current?.select();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const onKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      e.preventDefault();
+      // First Esc clears; the second puts Find back to rest.
+      if (query) setQuery("");
+      else {
+        setFinding(false);
+        requestAnimationFrame(() => rest.current?.focus());
+      }
+    } else if (e.key === "Enter" || e.key === "ArrowDown") {
+      const first = document.querySelector<HTMLElement>(firstResult);
+      if (first) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
+  };
+
+  const height = tall ? "h-12" : "h-10";
+  return (
+    <div role="search" className={cn("relative", className)}>
+      {open ? (
+        <>
+          <label htmlFor={id} className="sr-only">
+            Find a dashboard
+          </label>
+          <Search aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            ref={field}
+            id={id}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={onKeyDown}
+            onBlur={() => !query && setFinding(false)}
+            autoFocus
+            autoComplete="off"
+            spellCheck={false}
+            aria-describedby={`${id}-hint`}
+            aria-controls={controls}
+            placeholder={placeholder}
+            className={cn(
+              height,
+              "w-full rounded-lg border border-input bg-background pl-10 pr-10 text-sm outline-hidden placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-search-cancel-button]:hidden",
+            )}
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                field.current?.focus();
+              }}
+              className="absolute right-1.5 top-1/2 inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground outline-hidden hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <X className="size-4" aria-hidden="true" />
+              <span className="sr-only">Clear the search</span>
+            </button>
+          )}
+        </>
+      ) : (
+        <button
+          ref={rest}
+          type="button"
+          data-find
+          onClick={() => setFinding(true)}
+          aria-describedby={`${id}-hint`}
+          className={cn(
+            height,
+            "flex w-full items-center gap-2.5 rounded-lg border bg-card/70 px-3.5 text-sm text-muted-foreground outline-hidden backdrop-blur transition-colors duration-fast ease-out hover:bg-accent/60 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
+          )}
+        >
+          <Search aria-hidden="true" className="size-4 shrink-0" />
+          <span className="min-w-0 flex-1 truncate text-left">{placeholder}</span>
+          <kbd aria-hidden="true" className="shrink-0 font-mono text-2xs text-muted-foreground/80">
+            {mac ? "⌘ K" : "Ctrl K"}
+          </kbd>
+        </button>
+      )}
+      <p id={`${id}-hint`} className="sr-only">
+        {`Shortcut: ${mac ? "Command" : "Control"} K. Filters the dashboards below as you type; Enter moves to the first result.`}
+      </p>
+    </div>
   );
 }
 
