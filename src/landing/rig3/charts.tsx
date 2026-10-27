@@ -4,14 +4,13 @@
  * dependencies beyond what its components need.
  *
  * Rules these follow (the dataviz method):
- *   - colour comes from tokens only. Since the design system's jewel tones
- *     (2026-10-25) --chart-1..5 are KOC blue, coral, indigo, magenta, emerald,
- *     held apart only as NEIGHBOURS. In a line chart every series touches every
- *     other, so the sets used here are the ones that hold as a whole: blue +
- *     coral for two series, blue + coral + magenta for three. Never blue with
- *     indigo (chart-3): ΔE2000 13, and 5.5 under protanopia — one colour to a
- *     red-green colour-blind reader. --chart-1 is the one sequential hue,
- *     --chart-2 the warm pole where a scale has a "behind" end;
+ *   - colour comes from tokens only: --chart-1..3 for identity — KOC blue,
+ *     coral, magenta, the design system's jewel tones in their 2026-10-27
+ *     order, which its tests hold apart as a SET (every pair, both themes), so
+ *     three crossing lines stay distinct for colour-blind readers too. Not
+ *     --chart-5 (indigo) beside --chart-1: one colour to a colour-blind reader.
+ *     --chart-1 is the one sequential hue, --chart-2 the warm pole where a
+ *     scale has a "behind" end;
  *   - thin marks, a 2px surface gap between fills, hairline grid, one y-axis;
  *   - a legend for two or more series, plus direct labels on the few points
  *     that matter — never a number on every point;
@@ -26,8 +25,7 @@ import { cn } from "@/koc";
 export const ramp = (pct: number) => `color-mix(in oklab, var(--chart-1) ${pct}%, var(--card))`;
 export const C1 = "var(--chart-1)";
 export const C2 = "var(--chart-2)";
-/** Magenta: the third series beside C1 and C2. Not chart-3 — see above. */
-export const C4 = "var(--chart-4)";
+export const C3 = "var(--chart-3)";
 export const NEUTRAL = "color-mix(in oklab, var(--muted-foreground) 35%, var(--card))";
 
 const AXIS = "fill-muted-foreground text-[10px]";
